@@ -1,0 +1,24 @@
+# Local .terraform directories
+**/.terraform/*
+.terraform.lock.hcl
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
+# example: *tfplan*
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
+
+provider-vars.profile
+private_key.pem
+
+# k0s
+k0s/k0sctl.yaml
+k0s/kubeconfig
