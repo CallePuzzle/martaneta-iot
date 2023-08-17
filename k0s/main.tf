@@ -20,11 +20,25 @@ module "oci-k0s" {
   argocd_host = "argocd-martaneta.callepuzzle.com"
 
   manifests_source = {
-    repoURL = "https://github.com/CallePuzzle/martaneta-iot"
-    targetRevision = "HEAD"
+    repo_url = "https://github.com/CallePuzzle/martaneta-iot"
+    target_revision = "HEAD"
     path = "argo-manifests"
-    directory = {
-      recurse: true
+    directory_recurse = true
+  }
+
+  additional_k0s_config = {
+    spec = {
+      k0s = {
+        config = {
+          spec = {
+            extensions = {
+              storage = {
+                type = "openebs_local_storage"
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
