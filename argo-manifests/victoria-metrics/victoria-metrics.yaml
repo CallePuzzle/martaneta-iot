@@ -1,0 +1,60 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: victoria-metrics
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: victoria-metrics
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    repoURL: https://victoriametrics.github.io/helm-charts
+    targetRevision: 0.17.4
+    chart: victoria-metrics-k8s-stack
+    helm:
+      releaseName: vm
+      values: |
+        grafana:
+          ingress:
+            enabled: true
+            ingressClassName: "nginx"
+            hosts:
+              - grafana-martaneta.callepuzzle.com
+          extraSecretMounts:
+            - name: github-oauth
+              mountPath: /etc/secrets/github_oauth
+              subPath: github-oauth
+              defaultMode: 0440
+              readOnly: true
+          grafana.ini:
+            paths:
+              data: /var/lib/grafana/
+              logs: /var/log/grafana
+              plugins: /var/lib/grafana/plugins
+              provisioning: /etc/grafana/provisioning
+            analytics:
+              check_for_updates: true
+            log:
+              mode: console
+            server:
+              domain: grafana-martaneta.callepuzzle.com
+              root_url: https://grafana-martaneta.callepuzzle.com
+            auth.github:
+              enabled: true
+              client_id: $__file{/etc/secrets/github_oauth/client_id}
+              client_secret: $__file{/etc/secrets/github_oauth/client_secret}
+              scopes: "user:email,read:org"
+              auth_url: https://github.com/login/oauth/authorize
+              token_url: https://github.com/login/oauth/access_token
+              api_url: https://api.github.com/user
+              allowed_organizations: "'CallePuzzle'"
+              allow_assign_grafana_admin: true
+              role_attribute_strict: true
+              role_attribute_path: "[login=='jilgue'][0] && 'Admin' || 'Viewer'"
+              skip_org_role_sync: true
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
