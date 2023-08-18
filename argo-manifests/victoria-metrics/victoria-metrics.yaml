@@ -25,9 +25,9 @@ spec:
               - grafana-martaneta.callepuzzle.com
           extraSecretMounts:
             - name: github-oauth
-              mountPath: /etc/secrets/github_oauth
-              subPath: github-oauth
+              secretName: github-oauth
               defaultMode: 0440
+              mountPath: /etc/secrets/github_oauth
               readOnly: true
           grafana.ini:
             paths:
