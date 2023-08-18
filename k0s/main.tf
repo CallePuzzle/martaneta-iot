@@ -6,9 +6,20 @@ terraform {
       name = "k0s"
     }
   }
+  required_providers {
+    sops = {
+      source  = "carlpett/sops"
+      version = "0.7.2"
+    }
+  }
 }
 
-provider "oci" {
+provider "oci" {}
+
+provider "sops" {}
+
+data "sops_file" "argo" {
+  source_file = "secrets.enc.yaml"
 }
 
 module "oci-k0s" {
@@ -20,25 +31,15 @@ module "oci-k0s" {
   argocd_host = "argocd-martaneta.callepuzzle.com"
 
   manifests_source = {
-    repo_url = "https://github.com/CallePuzzle/martaneta-iot"
-    target_revision = "HEAD"
-    path = "argo-manifests"
+    repo_url          = "https://github.com/CallePuzzle/martaneta-iot"
+    target_revision   = "HEAD"
+    path              = "argo-manifests"
     directory_recurse = true
   }
 
-  additional_k0s_config = {
-    spec = {
-      k0s = {
-        config = {
-          spec = {
-            extensions = {
-              storage = {
-                type = "openebs_local_storage"
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+  argocd_values = templatefile("${path.root}/argocd-values.yaml.tmpl", {
+    argocd_host          = "argocd-martaneta.callepuzzle.com"
+    github_client_id     = data.sops_file.argo.data["github.clientID"]
+    github_client_secret = data.sops_file.argo.data["github.clientSecret"]
+  })
 }
